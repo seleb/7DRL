@@ -37,5 +37,7 @@
 		"webpack-merge": "^4.2.1"
 	},
 	"dependencies": {
+		"rot-js": "^2.0.3",
+		"webglazy": "^3.0.0"
 	}
 }
