@@ -110,12 +110,8 @@ function drawPaths(p, colour) {
 
 function drawCorridors() {
 	drawPaths(paths, 'grey');
-	if (prevConnection) {
-		drawPaths(prevConnection.paths, 'green');
-	}
-	if (curConnection) {
-		drawPaths(curConnection.paths, 'red');
-	}
+	drawPaths(prevConnection.paths, 'green');
+	drawPaths(curConnection.paths, 'red');
 }
 
 function drawRooms() {
@@ -128,22 +124,18 @@ function drawRooms() {
 	// room.getDoors(drawDoor);
 	// });
 
-	if (prevConnection) {
-		prevConnection.rooms
-			.map(id => map.getRooms()[id])
-			.forEach(room => {
-				drawRoom(display, room, 'red', 'darkred');
-			});
-	}
+	prevConnection.rooms
+		.map(id => map.getRooms()[id])
+		.forEach(room => {
+			drawRoom(display, room, 'red', 'darkred');
+		});
 
-	if (curConnection) {
-		curConnection.rooms
-			.map(id => map.getRooms()[id])
-			.forEach(room => {
-				drawRoom(display, room, 'yellow', 'orange');
-				room.getDoors(drawDoor);
-			});
-	}
+	curConnection.rooms
+		.map(id => map.getRooms()[id])
+		.forEach(room => {
+			drawRoom(display, room, 'yellow', 'orange');
+			room.getDoors(drawDoor);
+		});
 }
 
 let curConnection;
@@ -237,6 +229,8 @@ doors.forEach(([x, y]) => {
 
 
 [player.x, player.y] = rooms[0].getCenter();
+curConnection = { rooms: [0], paths: [] };
+prevConnection = curConnection;
 
 const characters = [{
 	x: rooms[1].getCenter()[0],
