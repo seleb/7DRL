@@ -99,18 +99,11 @@ var drawDoor = function(x, y) {
 }
 
 function drawPaths(p, colour) {
-	p.forEach(({ corridors }) => {
-		corridors.forEach(({
-			left,
-			top,
-			right,
-			bottom,
-		}) => {
-			for (let y = top; y <= bottom; ++y) {
-				for (let x = left; x <= right; ++x) {
-					display.draw(x, y, '※', colour);
-				}
-			}
+	p.forEach(({ cells }) => {
+		Object.keys(cells)
+		.map(cell => cell.split(',').map(str => parseInt(str, 10)))
+		.forEach(([x,y]) => {
+			display.draw(parseInt(x, 10), parseInt(y, 10), '※', colour);
 		});
 	});
 }
@@ -234,18 +227,11 @@ doors.forEach(([x, y]) => {
 	const id = [x, y].join(',');
 	paths.forEach((path) => {
 		const {
-			corridors = [],
+			cells = {},
 		} = path;
-		corridors.forEach(({
-			left,
-			top,
-			right,
-			bottom,
-		}) => {
-			if ((left === x && top === y) || (right === x && bottom === y)) {
-				connections[id].paths.push(path);
-			}
-		});
+		if (cells[`${x},${y}`]) {
+			connections[id].paths.push(path);
+		}
 	});
 });
 

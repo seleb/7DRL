@@ -1,5 +1,5 @@
 export function getPaths(map) {
-	const corridors = map.getCorridors()
+	const cells = map.getCorridors()
 	// normalize
 	.map(({
 		_startX: left,
@@ -21,70 +21,46 @@ export function getPaths(map) {
 		};
 	})
 	// merge colinear
-	.reduce((result, item) => {
-		const {
-			left: aLeft,
-			right: aRight,
-			top: aTop,
-			bottom: aBottom,
-		} = item;
-		const c = result.find(({
-			left: bLeft,
-			right: bRight,
-			top: bTop,
-			bottom: bBottom,
-		}) => (
-			(aLeft === aRight && bLeft === bRight && aLeft === bLeft && (bTop === aBottom + 1 || aTop === bBottom + 1))
-			||
-			(aTop === aBottom && bTop === bBottom && aTop === bTop && (bLeft === aRight + 1 || aLeft === bRight + 1))
-		));
-		if (c) {
-			c.left = Math.min(aLeft, c.left);
-			c.right = Math.max(aRight, c.right);
-			c.top = Math.min(aTop, c.top);
-			c.bottom = Math.max(aBottom, c.bottom);
-		} else {
-			result.push(item);
+	.reduce((result, {
+		left,
+		right,
+		top,
+		bottom,
+	}) => {
+		for (let y = top; y <= bottom; ++y) {
+			for (let x = left; x <= right; ++x) {
+				result[`${x},${y}`] = true;
+			}
 		}
 		return result;
-	}, []);
+	}, {});
 
-	const paths = [{
-		corridors: [corridors.pop()],
-	}];
-	while(corridors.length) {
-		const c = corridors.findIndex(({
-			left: aLeft,
-			top: aTop,
-			right: aRight,
-			bottom: aBottom,
-		}) => paths[paths.length-1].corridors.some(({
-				left: bLeft,
-				top: bTop,
-				right: bRight,
-				bottom: bBottom,
-			}) => {
-				for (let y = bTop; y <= bBottom; ++y) {
-					for (let x = bLeft; x <= bRight; ++x) {
-						if (
-							(Math.abs(aLeft - x) + Math.abs(aTop - y) <= 1)
-							||
-							(Math.abs(aRight - x) + Math.abs(aBottom - y) <= 1)
-						) {
-							return true;
-						}
-					}
+	const paths = [];
+	do {
+		const path = {};
+		const start = Object.keys(cells)[0];
+		function addCell(cell) {
+			const [x,y] = cell.split(',').map(str => parseInt(str, 10));
+			[
+				[1,0],
+				[-1,0],
+				[0,1],
+				[0,-1],
+			].forEach(([ax, ay]) => {
+				const id = `${x+ax},${y+ay}`;
+				if (cells[id]) {
+					delete cells[id];
+					path[id] = true;
+					addCell(id);
 				}
-				return false;
-			}
-		));
-		if (c !== -1) {
-			paths[paths.length-1].corridors.push(corridors.splice(c, 1)[0]);
-		} else {
-			paths.push({
-				corridors: [corridors.pop()],
 			});
 		}
-	}
+		delete cells[start];
+		path[start] = true;
+		addCell(start);
+		paths.push({
+			cells: path
+		});
+	} while (Object.keys(cells).length);
 	return paths;
 }
