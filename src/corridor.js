@@ -40,6 +40,8 @@ export function getPaths(map) {
 		const path = {};
 		const start = Object.keys(cells)[0];
 		function addCell(cell) {
+			delete cells[cell];
+			path[cell] = true;
 			const [x,y] = cell.split(',').map(str => parseInt(str, 10));
 			[
 				[1,0],
@@ -49,14 +51,10 @@ export function getPaths(map) {
 			].forEach(([ax, ay]) => {
 				const id = `${x+ax},${y+ay}`;
 				if (cells[id]) {
-					delete cells[id];
-					path[id] = true;
 					addCell(id);
 				}
 			});
 		}
-		delete cells[start];
-		path[start] = true;
 		addCell(start);
 		paths.push({
 			cells: path
