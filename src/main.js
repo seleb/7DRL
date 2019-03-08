@@ -101,10 +101,10 @@ var drawDoor = function(x, y) {
 function drawPaths(p, colour) {
 	p.forEach(({ cells }) => {
 		Object.keys(cells)
-		.map(cell => cell.split(',').map(str => parseInt(str, 10)))
-		.forEach(([x,y]) => {
-			display.draw(parseInt(x, 10), parseInt(y, 10), '※', colour);
-		});
+			.map(cell => cell.split(',').map(str => parseInt(str, 10)))
+			.forEach(([x, y]) => {
+				display.draw(parseInt(x, 10), parseInt(y, 10), '※', colour);
+			});
 	});
 }
 
@@ -119,19 +119,19 @@ function drawRooms() {
 		drawRoom(display, room, 'grey', 'darkgrey');
 	});
 	drawCorridors();
-	// map.getRooms().forEach(room => {
+	// rooms.forEach(room => {
 	// drawRoom(display, room, 'red', 'darkred');
 	// room.getDoors(drawDoor);
 	// });
 
 	prevConnection.rooms
-		.map(id => map.getRooms()[id])
+		.map(id => rooms[id])
 		.forEach(room => {
 			drawRoom(display, room, 'red', 'darkred');
 		});
 
 	curConnection.rooms
-		.map(id => map.getRooms()[id])
+		.map(id => rooms[id])
 		.forEach(room => {
 			drawRoom(display, room, 'yellow', 'orange');
 			room.getDoors(drawDoor);
@@ -163,30 +163,59 @@ document.addEventListener("keydown", function(e) {
 		x += 1;
 	}
 
+	const {
+		x: prevX,
+		y: prevY,
+	} = player;
+	function collideWall() {
+		player.x = prevX;
+		player.y = prevY;
+	}
 	player.x += x;
 	player.y += y;
 
+	// collision
 	const connection = connections[[player.x, player.y].join(',')];
 	if (connection) {
 		// at a connection point
 		prevConnection = curConnection;
 		curConnection = connection;
-	} else if (curConnection && curConnection.rooms.length > 1) {
+	} else if (curConnection.rooms.length + curConnection.paths.length > 1) {
 		// left a connection point
-		prevConnection = curConnection;
-		curConnection = {
-			rooms: [curConnection.rooms.find(id => {
-				const room = map.getRooms()[id];
-				const top = room.getTop() - 1;
-				const bottom = room.getBottom() + 1;
-				const left = room.getLeft() - 1;
-				const right = room.getRight() + 1;
-				return player.x >= left && player.x <= right && player.y >= top && player.y <= bottom;
-			})],
-			paths: [],
-		};
+		const roomId = curConnection.rooms.find(id => {
+			const room = rooms[id];
+			const top = room.getTop() - 1;
+			const bottom = room.getBottom() + 1;
+			const left = room.getLeft() - 1;
+			const right = room.getRight() + 1;
+			return player.x >= left && player.x <= right && player.y >= top && player.y <= bottom;
+		});
+		if (roomId !== undefined) {
+			prevConnection = curConnection;
+			curConnection = { rooms: [roomId], paths: [] };
+		} else {
+			const path = curConnection.paths.find(({ cells }) => cells[`${player.x},${player.y}`]);
+			if (path) {
+				prevConnection = curConnection;
+				curConnection = { rooms: [], paths: [path] };
+			} else {
+				collideWall();
+			}
+		}
+	} else {
+		// collision
+		if (curConnection.rooms.length === 1) {
+			const room = rooms[curConnection.rooms[0]];
+			if (player.x < room.getLeft() || player.x > room.getRight() || player.y < room.getTop() || player.y > room.getBottom()) {
+				collideWall();
+			}
+		} else if (curConnection.paths.length === 1) {
+			const path = curConnection.paths[0];
+			if (!path.cells[`${player.x},${player.y}`]) {
+				collideWall();
+			}
+		}
 	}
-
 
 	// const character = characters.find(({ x, y }) => x === player.x && y === player.y);
 	// if (character) {
