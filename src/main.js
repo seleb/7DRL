@@ -347,8 +347,8 @@ setTimeout(() => {
 
 	// start
 	setInterval(() => {
-		camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.1) * width) / width;
-		camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.1) * height) / height;
+		camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.2) * width) / width;
+		camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.2) * height) / height;
 		glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x % 1, camera.y % 1);
 		draw();
 	}, 120);
