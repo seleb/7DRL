@@ -250,6 +250,7 @@ const glazy = new WebGLazy({
 	pixelate: false,
 	scaleMultiplier: 3,
 	allowDownscaling: true,
+	disableFeedbackTexture: true,
 });
 glazy.glLocations.gridOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'gridOffset');
 glazy.glLocations.lightOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'lightOffset');

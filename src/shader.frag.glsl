@@ -1,6 +1,5 @@
 	precision mediump float;
 	uniform sampler2D tex0;
-	uniform sampler2D tex1;
 	uniform float time;
 	uniform vec2 resolution;
 	
