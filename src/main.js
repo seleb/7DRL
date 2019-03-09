@@ -66,11 +66,6 @@ window.scheduleText = (newText) => {
 	nextText();
 };
 
-const camera = {
-	x: 0,
-	y: 0,
-};
-
 setInterval(() => {
 	camera.x = Math.floor(lerp(camera.x, player.x - width/2, 0.1)*width)/width;
 	camera.y = Math.floor(lerp(camera.y, player.y - height/2, 0.1)*height)/height;
@@ -292,6 +287,10 @@ doors.forEach(([x, y]) => {
 
 
 [player.x, player.y] = rooms[0].getCenter();
+const camera = {
+	x: player.x - width/2,
+	y: player.y - height/2,
+};
 curConnection = { rooms: [0], paths: [] };
 prevConnection = curConnection;
 
