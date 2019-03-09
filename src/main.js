@@ -6,48 +6,12 @@ import shaderSrc from './shader.frag.glsl';
 import { drawRoom } from './room';
 import { getPaths } from './corridor';
 import { lerp, strToPos } from './utils';
-
-
-const width = 24;
-const height = 24;
-
-const player = {
-	x: 0,
-	y: 0,
-};
-
-const display = new Display({
-	width,
-	height,
-	layout: 'rect',
-	fontFamily: 'serif',
-	fontSize: 12,
-	forceSquareRatio: true,
-	// bg: 'grey',
-});
-const d = display.draw.bind(display);
-display.draw = function(x, y, ...args) {
-	d(x - camera.x, y - camera.y, ...args);
-};
-document.body.appendChild(display.getContainer());
-const glazy = new WebGLazy({
-	background: 'black',
-	scaleMode: WebGLazy.SCALE_MODES.MULTIPLES,
-	source: display.getContainer(),
-	fragment: shaderSrc,
-	pixelate: false,
-	scaleMultiplier: 3,
-});
-glazy.glLocations.gridOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'gridOffset');
-glazy.glLocations.lightOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'lightOffset');
-glazy.glLocations.text = glazy.gl.getUniformLocation(glazy.shader.program, 'text');
+import characterSymbolsSrc from './characters.txt';
 
 let text = '';
 let textTimeout;
 let textIdx;
-
 let finishText = () => {};
-
 function scheduleText(newText) {
 	text = newText;
 	textIdx = 0;
@@ -74,13 +38,6 @@ function scheduleText(newText) {
 
 	nextText();
 }
-
-setInterval(() => {
-	camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.1) * width) / width;
-	camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.1) * height) / height;
-	glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x % 1, camera.y % 1);
-	draw();
-}, 120);
 
 function draw() {
 	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x - player.x) / width + 0.5, (player.y - camera.y) / height - 0.5);
@@ -135,16 +92,6 @@ function draw() {
 	}
 }
 
-// RNG.setSeed(123);
-var map = new Map.Uniform(width * 2, height * 2, {
-	// roomWidth: [min, max],
-	// roomHeight: [min, max],
-	roomDugPercentage: 0.5,
-	timeLimit: 2000,
-});
-map.create();
-console.log(map);
-
 function drawDoor(x, y, color) {
 	const { open } = doors[`${x},${y}`];
 	display.draw(x, y, open ? '[  ]' : "⁅⁆", color);
@@ -160,9 +107,7 @@ function drawPaths(p, colour) {
 	});
 }
 
-let curConnection;
-let prevConnection;
-document.addEventListener("keydown", function onKeyDown(e) {
+function onKeyDown(e) {
 	var code = e.keyCode;
 
 	// var vk = "?"; /* find the corresponding constant */
@@ -187,7 +132,7 @@ document.addEventListener("keydown", function onKeyDown(e) {
 
 	move(x,y);
 	draw();
-});
+}
 
 function move(x,y) {
 	const {
@@ -277,79 +222,131 @@ function move(x,y) {
 	}
 }
 
-const paths = getPaths(map);
-const rooms = map.getRooms();
 
-const doors = rooms.reduce((result, item) => {
-	item.getDoors((x, y) => result[`${x},${y}`] = {
-		open: false,
-	});
-	return result;
-}, {});
 
+
+
+
+
+const width = 24;
+const height = 24;
+
+const display = new Display({
+	width,
+	height,
+	layout: 'rect',
+	fontFamily: 'serif',
+	fontSize: 12,
+	forceSquareRatio: true,
+	// bg: 'grey',
+});
+const glazy = new WebGLazy({
+	background: 'black',
+	scaleMode: WebGLazy.SCALE_MODES.FIT,
+	source: display.getContainer(),
+	fragment: shaderSrc,
+	pixelate: false,
+	scaleMultiplier: 3,
+	allowDownscaling: true,
+});
+glazy.glLocations.gridOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'gridOffset');
+glazy.glLocations.lightOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'lightOffset');
+glazy.glLocations.text = glazy.gl.getUniformLocation(glazy.shader.program, 'text');
+glazy.gl.uniform1f(glazy.glLocations.text, 1);
+
+display.drawText(1, height - 3, "Loading...");
+
+const d = display.draw.bind(display);
+display.draw = function(x, y, ...args) {
+	d(x - camera.x, y - camera.y, ...args);
+};
+
+let curConnection;
+let prevConnection;
+// RNG.setSeed(123);
+const map = new Map.Uniform(width * 4, height * 4, {
+	// roomWidth: [min, max],
+	// roomHeight: [min, max],
+	roomDugPercentage: 0.5,
+	timeLimit: 10000,
+});
 const connections = {};
-rooms.forEach(room => room.getDoors((x, y) => {
-	const id = [x, y].join(',');
-	connections[id] = connections[id] || {
-		rooms: [],
-		paths: [],
-	};
-	connections[id].rooms.push(room);
-}));
-Object.keys(doors).map(strToPos).forEach(([x, y]) => {
-	const id = [x, y].join(',');
-	paths.forEach(path => {
-		const {
-			cells = {},
-		} = path;
-		if (
-			cells[`${x},${y}`] ||
-			cells[`${x+1},${y}`] ||
-			cells[`${x},${y+1}`] ||
-			cells[`${x-1},${y}`] ||
-			cells[`${x},${y-1}`]
-		) {
-			connections[id].paths.push(path);
-			path.doors.push([x, y]);
-		}
-	});
-});
-
-
-[player.x, player.y] = rooms[0].getCenter();
-const camera = {
-	x: player.x - width / 2,
-	y: player.y - height / 2,
-};
-curConnection = { rooms: [rooms[0]], paths: [] };
-prevConnection = curConnection;
-
-import characterSymbolsSrc from './characters.txt';
-const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
+const player = {};
+const camera = {};
 const characters = [];
-rooms.forEach((room, idx) => {
-	characters.push({
-		x: rooms[idx].getCenter()[0],
-		y: rooms[idx].getCenter()[1],
-		text: 'I am a person with a description.',
-		symbol: characterSymbols[Math.floor(Math.random() * characterSymbols.length)],
-		colour: 'white',
-	});
-})
-setTimeout(() => {
-	draw();
-});
-// document.addEventListener("keypress", function(e) {
-//     var code = e.charCode;
-//     var ch = String.fromCharCode(code);
-//     out2.innerHTML = "Keypress: char is " + ch;
-// });
+let paths;
+let rooms;
+let doors;
 
-window.debug = {
-	display,
-	map,
-	rooms,
-	doors,
-	paths,
-	connections,
-};
+setTimeout(() => {
+	map.create();
+	paths = getPaths(map);
+	rooms = map.getRooms();
+	doors = rooms.reduce((result, item) => {
+		item.getDoors((x, y) => result[`${x},${y}`] = {
+			open: false,
+		});
+		return result;
+	}, {});
+
+	rooms.forEach(room => room.getDoors((x, y) => {
+		const id = [x, y].join(',');
+		connections[id] = connections[id] || {
+			rooms: [],
+			paths: [],
+		};
+		connections[id].rooms.push(room);
+	}));
+	Object.keys(doors).map(strToPos).forEach(([x, y]) => {
+		const id = [x, y].join(',');
+		paths.forEach(path => {
+			const {
+				cells = {},
+			} = path;
+			if (
+				cells[`${x},${y}`] ||
+				cells[`${x+1},${y}`] ||
+				cells[`${x},${y+1}`] ||
+				cells[`${x-1},${y}`] ||
+				cells[`${x},${y-1}`]
+			) {
+				connections[id].paths.push(path);
+				path.doors.push([x, y]);
+			}
+		});
+	});
+
+	[player.x, player.y] = rooms[0].getCenter();
+	camera.x = player.x - width / 2;
+	camera.y = player.y - height / 2;
+	curConnection = { rooms: [rooms[0]], paths: [] };
+	prevConnection = curConnection;
+	const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
+	rooms.forEach(room => {
+		characters.push({
+			x: room.getCenter()[0],
+			y: room.getCenter()[1],
+			text: 'I am a person with a description.',
+			symbol: characterSymbols[Math.floor(Math.random() * characterSymbols.length)],
+			colour: 'white',
+		});
+	})
+
+	setInterval(() => {
+		camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.1) * width) / width;
+		camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.1) * height) / height;
+		glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x % 1, camera.y % 1);
+		draw();
+	}, 120);
+
+	window.debug = {
+		display,
+		map,
+		rooms,
+		doors,
+		paths,
+		connections,
+	};
+	
+	document.addEventListener("keydown", onKeyDown);
+}, 100);
