@@ -6,6 +6,7 @@
 	
 	uniform vec2 gridOffset;
 	uniform vec2 lightOffset;
+	uniform float text;
 
 	const float PI = 3.14159;
 	const float PI2 = PI*2.0;
@@ -80,7 +81,12 @@
 		fg.r = clamp(0.0, fg.r, 1.0);
 		fg.g = clamp(0.0, fg.g, 1.0);
 		fg.b = clamp(0.0, fg.b, 1.0);
-		fg *= pow(vignette(puv + lightOffset,1.0),3.0);
+		float flicker = pow(vignette(puv + lightOffset,1.0),3.0);
+		float flickerMix = step(uv.y, 3.5/24.0 * text);
+		fg.r *= mix(flicker-rand(vec2(puv.x,t))*0.1, 1.0, flickerMix);
+		fg.g *= mix(flicker-rand(vec2(puv.y,t))*0.1, 1.0, flickerMix);
+		fg.b *= mix(flicker-rand(vec2(puv.x+puv.y,t))*0.1, 1.0, flickerMix);
 		fg *= mix(1.0, rand(puv + t), 0.25 * step(0.98, rand(puv + t + 0.5)));
+		fg *= mix(1.0, rand(puv + t), 0.75 * step(0.998, rand(puv + t + 0.25)));
 		gl_FragColor = vec4(fg.rgb, 1.0);
 	}

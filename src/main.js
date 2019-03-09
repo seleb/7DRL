@@ -40,6 +40,7 @@ const glazy = new WebGLazy({
 });
 glazy.glLocations.gridOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'gridOffset');
 glazy.glLocations.lightOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'lightOffset');
+glazy.glLocations.text = glazy.gl.getUniformLocation(glazy.shader.program, 'text');
 
 let text = '';
 let textTimeout;
@@ -94,13 +95,18 @@ function draw() {
 		display.draw(x, y, symbol, colour);
 	});
 
+	glazy.gl.uniform1f(glazy.glLocations.text, text ? 1 : 0);
 	if (text) {
+		const c = {...camera};
+		camera.x = camera.y = 0;
 		for (let x = 0; x <= width; ++x) {
 			for (let y = height - 4; y <= height; ++y) {
-				display.draw(x, y, '', '', 'black');
+				d(x, y, '', '', 'black');
 			}
 		}
-		display.drawText(1, height - 3, text.replace(new RegExp(`(.{${textIdx}})(.*)`), (_, show, hide) => `${show}${hide.replace(/[^\s]/g, '\u00A0')}`), width - 2);
+		display.drawText(1, height - 3, '%c{white}%b{black}' + text.replace(new RegExp(`(.{${textIdx}})(.*)`), (_, show, hide) => `${show}${hide.replace(/[^\s]/g, '\u00A0')}`), width - 2);
+		camera.x = c.x;
+		camera.y = c.y;
 	}
 }
 
@@ -238,12 +244,13 @@ document.addEventListener("keydown", function(e) {
 		}
 	}
 
-	// const character = characters.find(({ x, y }) => x === player.x && y === player.y);
-	// if (character) {
-	// 	scheduleText(character.text);
-	// } else {
-	// 	scheduleText('');
-	// }
+	const character = characters.find(({ x, y }) => x === player.x && y === player.y);
+	if (character) {
+		scheduleText(character.text);
+		collideWall();
+	} else {
+		scheduleText('');
+	}
 
 	draw();
 });
