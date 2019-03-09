@@ -47,6 +47,7 @@ let textTimeout;
 let textIdx;
 
 let finishText = () => {};
+
 function scheduleText(newText) {
 	text = newText;
 	textIdx = 0;
@@ -75,14 +76,14 @@ function scheduleText(newText) {
 }
 
 setInterval(() => {
-	camera.x = Math.floor(lerp(camera.x, player.x - width/2, 0.1)*width)/width;
-	camera.y = Math.floor(lerp(camera.y, player.y - height/2, 0.1)*height)/height;
-	glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x%1, camera.y%1);
+	camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.1) * width) / width;
+	camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.1) * height) / height;
+	glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x % 1, camera.y % 1);
 	draw();
 }, 120);
 
 function draw() {
-	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x-player.x)/width+0.5, (player.y-camera.y)/height-0.5);
+	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x - player.x) / width + 0.5, (player.y - camera.y) / height - 0.5);
 	display.clear();
 
 	drawRooms();
@@ -100,7 +101,7 @@ function draw() {
 
 	glazy.gl.uniform1f(glazy.glLocations.text, text ? 1 : 0);
 	if (text) {
-		const c = {...camera};
+		const c = { ...camera };
 		camera.x = camera.y = 0;
 		for (let x = 0; x <= width; ++x) {
 			for (let y = height - 4; y <= height; ++y) {
@@ -108,7 +109,7 @@ function draw() {
 			}
 		}
 		let t = text;
-		for(let i = 0; i < Math.random()*3; ++i) {
+		for (let i = 0; i < Math.random() * 3; ++i) {
 			if (Math.random() < 0.9) {
 				continue;
 			}
@@ -123,7 +124,7 @@ function draw() {
 }
 
 // RNG.setSeed(123);
-var map = new Map.Digger(width*2, height*2, {
+var map = new Map.Digger(width * 2, height * 2, {
 	// roomWidth: [min, max],
 	// roomHeight: [min, max],
 	corridorLength: [3, 5],
@@ -164,13 +165,11 @@ function drawRooms() {
 	// });
 
 	prevConnection.rooms
-		.map(id => rooms[id])
 		.forEach(room => {
 			drawRoom(display, room, 'red', 'darkred');
 		});
 
 	curConnection.rooms
-		.map(id => rooms[id])
 		.forEach(room => {
 			drawRoom(display, room, 'yellow', 'orange');
 			room.getDoors(drawDoor);
@@ -206,6 +205,7 @@ document.addEventListener("keydown", function(e) {
 		x: prevX,
 		y: prevY,
 	} = player;
+
 	function collideWall() {
 		player.x = prevX;
 		player.y = prevY;
@@ -221,8 +221,7 @@ document.addEventListener("keydown", function(e) {
 		curConnection = connection;
 	} else if (curConnection.rooms.length + curConnection.paths.length > 1) {
 		// left a connection point
-		const roomId = curConnection.rooms.find(id => {
-			const room = rooms[id];
+		const roomId = curConnection.rooms.find(room => {
 			const top = room.getTop();
 			const bottom = room.getBottom();
 			const left = room.getLeft();
@@ -244,7 +243,7 @@ document.addEventListener("keydown", function(e) {
 	} else {
 		// collision
 		if (curConnection.rooms.length === 1) {
-			const room = rooms[curConnection.rooms[0]];
+			const room = curConnection.rooms[0];
 			if (player.x < room.getLeft() || player.x > room.getRight() || player.y < room.getTop() || player.y > room.getBottom()) {
 				collideWall();
 			}
@@ -280,17 +279,17 @@ const doors = rooms.reduce((result, item) => {
 }, []);
 
 const connections = {};
-rooms.forEach((room, idx) => room.getDoors((x, y) => {
+rooms.forEach(room => room.getDoors((x, y) => {
 	const id = [x, y].join(',');
 	connections[id] = connections[id] || {
 		rooms: [],
 		paths: [],
 	};
-	connections[id].rooms.push(idx);
+	connections[id].rooms.push(room);
 }));
 doors.forEach(([x, y]) => {
 	const id = [x, y].join(',');
-	paths.forEach((path) => {
+	paths.forEach(path => {
 		const {
 			cells = {},
 		} = path;
@@ -309,10 +308,10 @@ doors.forEach(([x, y]) => {
 
 [player.x, player.y] = rooms[0].getCenter();
 const camera = {
-	x: player.x - width/2,
-	y: player.y - height/2,
+	x: player.x - width / 2,
+	y: player.y - height / 2,
 };
-curConnection = { rooms: [0], paths: [] };
+curConnection = { rooms: [rooms[0]], paths: [] };
 prevConnection = curConnection;
 
 import characterSymbolsSrc from './characters.txt';
@@ -323,7 +322,7 @@ rooms.forEach((room, idx) => {
 		x: rooms[idx].getCenter()[0],
 		y: rooms[idx].getCenter()[1],
 		text: 'I am a person with a description.',
-		symbol: characterSymbols[Math.floor(Math.random()*characterSymbols.length)],
+		symbol: characterSymbols[Math.floor(Math.random() * characterSymbols.length)],
 		colour: 'white',
 	});
 })
