@@ -59,7 +59,7 @@
 		return v-mod(v,1.0/mix(uSpriteSize.x,uSpriteSize.y,t));
 	}
 	void main(void){
-		float t = mod(time, 1000.0);
+		float t = mod(time, 10000.0);
 		vec2 uvo = gl_FragCoord.xy / resolution;
 		vec2 uv = uvo;
 
