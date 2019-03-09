@@ -15,7 +15,7 @@ module.exports = {
 				loader: 'babel-loader'
 			}
 		}, {
-			test: /\.glsl$/,
+			test: /\.(glsl|txt)$/,
 			use: 'raw-loader'
 		}, {
 			test: /\.css$/, // stylesheets

@@ -295,13 +295,18 @@ doors.forEach(([x, y]) => {
 curConnection = { rooms: [0], paths: [] };
 prevConnection = curConnection;
 
-const characters = [{
-	x: rooms[1].getCenter()[0],
-	y: rooms[1].getCenter()[1],
-	text: 'I am a person with a description.',
-	symbol: '🤷',
-	colour: 'white',
-}];
+import characterSymbolsSrc from './characters.txt';
+const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
+const characters = [];
+rooms.forEach((room, idx) => {
+	characters.push({
+		x: rooms[idx].getCenter()[0],
+		y: rooms[idx].getCenter()[1],
+		text: 'I am a person with a description.',
+		symbol: characterSymbols[Math.floor(Math.random()*characterSymbols.length)],
+		colour: 'white',
+	});
+})
 setTimeout(() => {
 	draw();
 });
