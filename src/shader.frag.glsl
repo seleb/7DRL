@@ -3,12 +3,16 @@
 	uniform sampler2D tex1;
 	uniform float time;
 	uniform vec2 resolution;
+	
+	uniform vec2 gridOffset;
+	uniform vec2 lightOffset;
 
 	const float PI = 3.14159;
 	const float PI2 = PI*2.0;
 
 	vec2 uBufferSize = vec2(288.0);
 	vec2 uSpriteSize = vec2(288.0);
+	vec2 gridSize = vec2(24.0);
 
 	//https://stackoverflow.com/questions/12964279/whats-the-origin-of-this-glsl-rand-one-liner
 	float rand(vec2 co){
@@ -24,6 +28,7 @@
 	}
 
 	float vignette(vec2 uv, float amount){
+		uv = clamp(uv, 0.0, 1.0);
 		uv = uv * uBufferSize / uSpriteSize;
 		uv*=2.0;
 		uv -= 1.0;
@@ -53,14 +58,13 @@
 		return v-mod(v,1.0/mix(uSpriteSize.x,uSpriteSize.y,t));
 	}
 	void main(void){
+		float t = mod(time, 1000.0);
 		vec2 uvo = gl_FragCoord.xy / resolution;
 		vec2 uv = uvo;
 
 		float o = floor(uv.y*uSpriteSize.y);
 		float r = floor(uv.x*uSpriteSize.x);
-		vec2 puv = floor(uv * uSpriteSize + vec2(.5)) / uBufferSize;
-
-		float center = distance(uv,vec2(.5));
+		vec2 puv = floor(uv * gridSize - gridOffset) / gridSize;
 
 		vec3 fg = tex(uv);
 		float chrAbbSeparation = pow(
@@ -69,13 +73,14 @@
 				vec2(0.5)
 			),
 			0.8
-		) * 0.2 + 0.1;
-		float chrAbbRotation=mod(time/10.0, PI2);
-		fg += chrAbb(uv, chrAbbSeparation, chrAbbRotation+PI2*(uv.x+uv.y)) * 0.42;
+		) * 2.5 + 0.2;
+		float chrAbbRotation=mod(t/10.0, PI2);
+		fg += chrAbb(uv, chrAbbSeparation, chrAbbRotation+PI2*(uv.x+uv.y)) * 0.2;
 		fg *= grille(uv, vec2(0.6,0.3));
 		fg.r = clamp(0.0, fg.r, 1.0);
 		fg.g = clamp(0.0, fg.g, 1.0);
 		fg.b = clamp(0.0, fg.b, 1.0);
-		fg *= vignette(uv,0.1);
+		fg *= pow(vignette(puv + lightOffset,1.0),3.0);
+		fg *= mix(1.0, rand(puv + t), 0.25 * step(0.98, rand(puv + t + 0.5)));
 		gl_FragColor = vec4(fg.rgb, 1.0);
 	}

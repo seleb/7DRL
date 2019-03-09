@@ -5,6 +5,7 @@ import WebGLazy from 'webglazy';
 import shaderSrc from './shader.frag.glsl';
 import { drawRoom } from './room';
 import { getPaths } from './corridor';
+import { lerp } from './utils';
 
 
 const width = 24;
@@ -22,9 +23,14 @@ const display = new Display({
 	fontFamily: 'serif',
 	fontSize: 12,
 	forceSquareRatio: true,
+	// bg: 'grey',
 });
+const d = display.draw.bind(display);
+display.draw = function(x, y, ...args) {
+	d(x - camera.x, y - camera.y, ...args);
+};
 document.body.appendChild(display.getContainer());
-new WebGLazy({
+const glazy = new WebGLazy({
 	background: 'black',
 	scaleMode: WebGLazy.SCALE_MODES.MULTIPLES,
 	source: display.getContainer(),
@@ -32,6 +38,8 @@ new WebGLazy({
 	pixelate: false,
 	scaleMultiplier: 3,
 });
+glazy.glLocations.gridOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'gridOffset');
+glazy.glLocations.lightOffset = glazy.gl.getUniformLocation(glazy.shader.program, 'lightOffset');
 
 let text = '';
 let textTimeout;
@@ -57,12 +65,25 @@ window.scheduleText = (newText) => {
 	nextText();
 };
 
+const camera = {
+	x: 0,
+	y: 0,
+};
+
+setInterval(() => {
+	camera.x = Math.floor(lerp(camera.x, player.x - width/2, 0.1)*width)/width;
+	camera.y = Math.floor(lerp(camera.y, player.y - height/2, 0.1)*height)/height;
+	glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x%1, camera.y%1);
+	draw();
+}, 120);
+
 function draw() {
+	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x-player.x)/width+0.5, (player.y-camera.y)/height-0.5);
 	display.clear();
 
 	drawRooms();
+	display.draw(player.x, player.y, '☻', 'white', 'black');
 	// display.drawText(1, 1, "Hello world");
-	display.draw(player.x, player.y, '👤', 'white', 'black');
 
 	characters.forEach(({
 		x,
@@ -84,7 +105,7 @@ function draw() {
 }
 
 // RNG.setSeed(123);
-var map = new Map.Digger(width, height, {
+var map = new Map.Digger(width*2, height*2, {
 	// roomWidth: [min, max],
 	// roomHeight: [min, max],
 	corridorLength: [3, 5],
@@ -95,7 +116,7 @@ map.create();
 console.log(map);
 
 var drawDoor = function(x, y) {
-	display.draw(x, y, "Ξ", "yellow");
+	display.draw(x, y, "ↀ", "yellow");
 }
 
 function drawPaths(p, colour) {
@@ -109,16 +130,16 @@ function drawPaths(p, colour) {
 }
 
 function drawCorridors() {
-	drawPaths(paths, 'grey');
-	drawPaths(prevConnection.paths, 'green');
-	drawPaths(curConnection.paths, 'red');
+	// drawPaths(paths, 'grey');
+	drawPaths(prevConnection.paths, 'darkred');
+	drawPaths(curConnection.paths, 'orange');
 }
 
 function drawRooms() {
-	rooms.forEach(room => {
-		drawRoom(display, room, 'grey', 'darkgrey');
-	});
 	drawCorridors();
+	// rooms.forEach(room => {
+	// 	drawRoom(display, room, 'grey', 'darkgrey');
+	// });
 	// rooms.forEach(room => {
 	// drawRoom(display, room, 'red', 'darkred');
 	// room.getDoors(drawDoor);
@@ -284,6 +305,7 @@ setTimeout(() => {
 // });
 
 window.debug = {
+	display,
 	map,
 	rooms,
 	doors,
