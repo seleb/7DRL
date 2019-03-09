@@ -45,11 +45,19 @@ glazy.glLocations.text = glazy.gl.getUniformLocation(glazy.shader.program, 'text
 let text = '';
 let textTimeout;
 let textIdx;
-window.scheduleText = (newText) => {
+
+let finishText = () => {};
+function scheduleText(newText) {
 	text = newText;
 	textIdx = 0;
 	if (textTimeout) {
 		clearTimeout(textTimeout);
+	}
+
+	finishText = () => {
+		clearTimeout(textTimeout);
+		textIdx = text.length;
+		draw();
 	}
 
 	function nextText() {
@@ -64,7 +72,7 @@ window.scheduleText = (newText) => {
 	}
 
 	nextText();
-};
+}
 
 setInterval(() => {
 	camera.x = Math.floor(lerp(camera.x, player.x - width/2, 0.1)*width)/width;
@@ -250,7 +258,11 @@ document.addEventListener("keydown", function(e) {
 
 	const character = characters.find(({ x, y }) => x === player.x && y === player.y);
 	if (character) {
-		scheduleText(character.text);
+		if (text === character.text) {
+			finishText();
+		} else {
+			scheduleText(character.text);
+		}
 		collideWall();
 	} else {
 		scheduleText('');
