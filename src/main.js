@@ -250,7 +250,13 @@ doors.forEach(([x, y]) => {
 		const {
 			cells = {},
 		} = path;
-		if (cells[`${x},${y}`]) {
+		if (
+			cells[`${x},${y}`] ||
+			cells[`${x+1},${y}`] ||
+			cells[`${x},${y+1}`] ||
+			cells[`${x-1},${y}`] ||
+			cells[`${x},${y-1}`]
+		) {
 			connections[id].paths.push(path);
 		}
 	});
