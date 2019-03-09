@@ -59,14 +59,18 @@ function draw() {
 	display.draw(player.x, player.y, '☻', 'white', 'black');
 	// display.drawText(1, 1, "Hello world");
 
-	characters.forEach(({
-		x,
-		y,
-		symbol,
-		colour,
-	}) => {
-		display.draw(x, y, symbol, colour);
+
+	curConnection.rooms.forEach(({ characters }) => {
+		characters.forEach(({
+			x,
+			y,
+			symbol,
+			colour,
+		}) => {
+			display.draw(x, y, symbol, colour);
+		});
 	});
+	
 
 	glazy.gl.uniform1f(glazy.glLocations.text, text ? 1 : 0);
 	if (text) {
@@ -207,17 +211,19 @@ function move(x,y) {
 	}
 
 
-	const character = characters.find(({ x, y }) => x === player.x && y === player.y);
-	if (character) {
-		if (text === character.text) {
-			finishText();
+	curConnection.rooms.forEach(({ characters }) => {
+		const character = characters.find(({ x, y }) => x === player.x && y === player.y);
+		if (character) {
+			if (text === character.text) {
+				finishText();
+			} else {
+				scheduleText(character.text);
+			}
+			collideWall();
 		} else {
-			scheduleText(character.text);
+			scheduleText('');
 		}
-		collideWall();
-	} else {
-		scheduleText('');
-	}
+	});
 }
 
 
@@ -321,7 +327,8 @@ setTimeout(() => {
 	prevConnection = curConnection;
 	const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
 	rooms.forEach(room => {
-		characters.push({
+		room.characters = [];
+		room.characters.push({
 			x: room.getCenter()[0],
 			y: room.getCenter()[1],
 			text: 'I am a person with a description.',
