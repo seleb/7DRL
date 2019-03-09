@@ -3,10 +3,11 @@ import './assets/reset.css';
 import { Display, KEYS, RNG, Map } from 'rot-js';
 import WebGLazy from 'webglazy';
 import shaderSrc from './shader.frag.glsl';
-import { drawRoom } from './room';
+import { drawRoom, getSpaces, getPointsOfInterest } from './room';
 import { getPaths } from './corridor';
-import { lerp, strToPos } from './utils';
+import { lerp, strToPos, getRandomItem } from './utils';
 import characterSymbolsSrc from './characters.txt';
+const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
 
 let text = '';
 let textTimeout;
@@ -274,7 +275,6 @@ const map = new Map.Uniform(width * 4, height * 4, {
 const connections = {};
 const player = {};
 const camera = {};
-const characters = [];
 let paths;
 let rooms;
 let doors;
@@ -290,6 +290,8 @@ setTimeout(() => {
 		return result;
 	}, {});
 
+	// get connections
+	// for rooms
 	rooms.forEach(room => room.getDoors((x, y) => {
 		const id = [x, y].join(',');
 		connections[id] = connections[id] || {
@@ -298,6 +300,7 @@ setTimeout(() => {
 		};
 		connections[id].rooms.push(room);
 	}));
+	// for paths
 	Object.keys(doors).map(strToPos).forEach(([x, y]) => {
 		const id = [x, y].join(',');
 		paths.forEach(path => {
@@ -317,30 +320,42 @@ setTimeout(() => {
 		});
 	});
 
-	[player.x, player.y] = rooms[0].getCenter();
+	// place characters
+	rooms.forEach(room => {
+		const spaces = getSpaces(room, getPointsOfInterest(room));
+		const [x,y] = getRandomItem(spaces);
+		room.characters = [];
+		room.characters.push({
+			x,
+			y,
+			text: 'I am a person with a description.',
+			symbol: getRandomItem(characterSymbols),
+			colour: 'white',
+		});
+	})
+	
+
+	// camera/player stuff
+	const [x, y] = rooms[0].getCenter();
+	player.x = x;
+	player.y = y;
 	camera.x = player.x - width / 2;
 	camera.y = player.y - height / 2;
 	curConnection = { rooms: [rooms[0]], paths: [] };
 	prevConnection = curConnection;
-	const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
-	rooms.forEach(room => {
-		room.characters = [];
-		room.characters.push({
-			x: room.getCenter()[0],
-			y: room.getCenter()[1],
-			text: 'I am a person with a description.',
-			symbol: characterSymbols[Math.floor(Math.random() * characterSymbols.length)],
-			colour: 'white',
-		});
-	})
 
+	// start
 	setInterval(() => {
 		camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.1) * width) / width;
 		camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.1) * height) / height;
 		glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x % 1, camera.y % 1);
 		draw();
 	}, 120);
+	
+	document.addEventListener("keydown", onKeyDown);
+	display.clear();
 
+	// debug
 	window.debug = {
 		display,
 		map,
@@ -349,7 +364,4 @@ setTimeout(() => {
 		paths,
 		connections,
 	};
-	
-	document.addEventListener("keydown", onKeyDown);
-	display.clear();
 }, 100);

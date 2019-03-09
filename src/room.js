@@ -1,3 +1,6 @@
+import { posToStr, strToPos } from "./utils";
+import { Path } from "rot-js";
+
 // const room = `
 // ╔═╗
 // ║ ║
@@ -51,3 +54,56 @@ export function drawRoom(display, room, border, fill) {
 		}
 	}
 }
+export function getSpaces(room, points = []) {
+	const left = room.getLeft();
+	const right = room.getRight();
+	const top = room.getTop();
+	const bottom = room.getBottom();
+	const data = {};
+	for (let x = left; x <= right; ++x) {
+		for (let y = top; y <= bottom; ++y) {
+			data[posToStr(x,y)] = true;
+		}
+	}
+	const spaces = { ...data };
+
+	/* input callback informs about map structure */
+	function passableCallback(x, y) {
+		return data[posToStr(x,y)];
+	}
+
+	points.forEach(([x,y]) => {
+		const astar = new Path.AStar(...room.getCenter(), passableCallback, { topology: 4 });
+		astar.compute(x, y, function(x, y) {
+			delete spaces[posToStr(x,y)];
+		});
+	});
+	return Object.keys(spaces).map(strToPos);
+}
+
+export function getPointsOfInterest(room) {
+	const points = [];
+	// doors
+	room.getDoors((x, y) => {
+		let dx = 0;
+		let dy = 0;
+		if (x === room.getLeft() - 1) {
+			dx = 1;
+		}else if (x === room.getRight() + 1) {
+			dx = -1;
+		}if (y === room.getTop() - 1) {
+			dy = 1;
+		}else if (y === room.getBottom() + 1) {
+			dy = -1;
+		}
+		points.push([x + dx, y + dy]);
+	});
+	// characters
+	const { characters = [] } = room;
+	characters.forEach(({ x, y }) => {
+		points.push([x,y]);
+	});
+	return points;
+}
+
+window.getSpaces = getSpaces;

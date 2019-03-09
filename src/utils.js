@@ -6,6 +6,10 @@ export function strToPos(str) {
 	return str.split(',').map(str => parseInt(str, 10));
 }
 
-export function posToStr([x,y]) {
+export function posToStr(x,y) {
 	return `${x},${y}`;
+}
+
+export function getRandomItem(arr) {
+	return arr[Math.floor(Math.random()*arr.length)];
 }
