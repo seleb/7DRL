@@ -41,7 +41,6 @@ function scheduleText(newText) {
 
 function draw() {
 	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x - player.x) / width + 0.5, (player.y - camera.y) / height - 0.5);
-	display.clear();
 	drawPaths(prevConnection.paths, 'darkred');
 	prevConnection.rooms.forEach(room => {
 		drawRoom(display, room, 'red', 'darkred');
@@ -57,8 +56,6 @@ function draw() {
 		room.getDoors((x, y) => drawDoor(x, y, 'yellow'));
 	});
 	display.draw(player.x, player.y, '☻', 'white', 'black');
-	// display.drawText(1, 1, "Hello world");
-
 
 	curConnection.rooms.forEach(({ characters }) => {
 		characters.forEach(({
@@ -354,4 +351,5 @@ setTimeout(() => {
 	};
 	
 	document.addEventListener("keydown", onKeyDown);
+	display.clear();
 }, 100);
