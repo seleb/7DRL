@@ -126,7 +126,7 @@ function draw() {
 				continue;
 			}
 			t = t.replace(new RegExp(`(.{${Math.floor(Math.random()*t.length)}})(.)(.*)`), (_, a, replace, b) => (
-				`${a}${!replace.trim() ? replace : String.fromCodePoint(97+Math.floor(25*Math.random()))}${b}`
+				`${a}${!replace.trim() ? replace : String.fromCodePoint(replace.codePointAt(0)+Math.floor(25*(Math.random()-0.5)))}${b}`
 			));
 		}
 		display.drawText(1, height - 3, '%c{white}%b{black}' + t.replace(new RegExp(`(.{${textIdx}})(.*)`), (_, show, hide) => `${show}${hide.replace(/[^\s]/g, '\u00A0')}`), width - 2);
