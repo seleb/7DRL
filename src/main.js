@@ -170,6 +170,7 @@ function move(x,y) {
 	
 	if (curConnection.rooms.length + curConnection.paths.length > 1) {
 		// left a connection point
+		const path = curConnection.paths.find(({ cells }) => cells[`${player.x},${player.y}`]);
 		const roomId = curConnection.rooms.find(room => {
 			const top = room.getTop();
 			const bottom = room.getBottom();
@@ -177,17 +178,14 @@ function move(x,y) {
 			const right = room.getRight();
 			return player.x >= left && player.x <= right && player.y >= top && player.y <= bottom;
 		});
-		if (roomId !== undefined) {
+		if (path) {
+			prevConnection = curConnection;
+			curConnection = { rooms: [], paths: [path] };
+		} else if (roomId !== undefined) {
 			prevConnection = curConnection;
 			curConnection = { rooms: [roomId], paths: [] };
 		} else {
-			const path = curConnection.paths.find(({ cells }) => cells[`${player.x},${player.y}`]);
-			if (path) {
-				prevConnection = curConnection;
-				curConnection = { rooms: [], paths: [path] };
-			} else {
-				collideWall();
-			}
+			collideWall();
 		}
 		return;
 	}
