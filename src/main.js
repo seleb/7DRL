@@ -85,10 +85,20 @@ setInterval(() => {
 function draw() {
 	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x - player.x) / width + 0.5, (player.y - camera.y) / height - 0.5);
 	display.clear();
-
-	drawCorridors();
-	drawRooms();
-	drawDoors();
+	drawPaths(prevConnection.paths, 'darkred');
+	prevConnection.rooms.forEach(room => {
+		drawRoom(display, room, 'red', 'darkred');
+	});
+	curConnection.rooms.forEach(room => {
+		drawRoom(display, room, 'yellow', 'orange');
+	});
+	drawPaths(curConnection.paths, 'orange');
+	curConnection.paths.forEach(({ doors }) => {
+		doors.forEach(([x, y]) => drawDoor(x, y, 'red'));
+	});
+	curConnection.rooms.forEach(room => {
+		room.getDoors((x, y) => drawDoor(x, y, 'yellow'));
+	});
 	display.draw(player.x, player.y, '☻', 'white', 'black');
 	// display.drawText(1, 1, "Hello world");
 
@@ -150,38 +160,9 @@ function drawPaths(p, colour) {
 	});
 }
 
-function drawCorridors() {
-	// drawPaths(paths, 'grey');
-	drawPaths(prevConnection.paths, 'darkred');
-	drawPaths(curConnection.paths, 'orange');
-}
-
-function drawRooms() {
-	prevConnection.rooms
-		.forEach(room => {
-			drawRoom(display, room, 'red', 'darkred');
-		});
-
-	curConnection.rooms
-		.forEach(room => {
-			drawRoom(display, room, 'yellow', 'orange');
-		});
-}
-
-function drawDoors() {
-	curConnection.paths
-		.forEach(({ doors }) => {
-			doors.forEach(([x, y]) => drawDoor(x, y, 'red'));
-		});
-	curConnection.rooms
-		.forEach(room => {
-			room.getDoors((x, y) => drawDoor(x, y, 'yellow'));
-		});
-}
-
 let curConnection;
 let prevConnection;
-document.addEventListener("keydown", function move(e) {
+document.addEventListener("keydown", function onKeyDown(e) {
 	var code = e.keyCode;
 
 	// var vk = "?"; /* find the corresponding constant */
@@ -204,6 +185,11 @@ document.addEventListener("keydown", function move(e) {
 		x += 1;
 	}
 
+	move(x,y);
+	draw();
+});
+
+function move(x,y) {
 	const {
 		x: prevX,
 		y: prevY,
@@ -218,53 +204,62 @@ document.addEventListener("keydown", function move(e) {
 
 	// collision
 	const door = doors[[player.x, player.y].join(',')];
-	if (door && !door.open) {
+	if (door) {
 		clearTimeout(door.closeTimeout);
-		door.open = true;
 		door.closeTimeout = setTimeout(() => {
 			door.open = false;
 		}, 1000);
-		collideWall();
-	} else {
-		const connection = connections[[player.x, player.y].join(',')];
-		if (connection) {
-			// at a connection point
+		if (!door.open) {
+			collideWall();
+			door.open = true;
+			return;
+		}
+	} 
+	const connection = connections[[player.x, player.y].join(',')];
+	if (connection) {
+		// at a connection point
+		prevConnection = curConnection;
+		curConnection = connection;
+		return;
+	}
+	
+	if (curConnection.rooms.length + curConnection.paths.length > 1) {
+		// left a connection point
+		const roomId = curConnection.rooms.find(room => {
+			const top = room.getTop();
+			const bottom = room.getBottom();
+			const left = room.getLeft();
+			const right = room.getRight();
+			return player.x >= left && player.x <= right && player.y >= top && player.y <= bottom;
+		});
+		if (roomId !== undefined) {
 			prevConnection = curConnection;
-			curConnection = connection;
-		} else if (curConnection.rooms.length + curConnection.paths.length > 1) {
-			// left a connection point
-			const roomId = curConnection.rooms.find(room => {
-				const top = room.getTop();
-				const bottom = room.getBottom();
-				const left = room.getLeft();
-				const right = room.getRight();
-				return player.x >= left && player.x <= right && player.y >= top && player.y <= bottom;
-			});
-			if (roomId !== undefined) {
-				prevConnection = curConnection;
-				curConnection = { rooms: [roomId], paths: [] };
-			} else {
-				const path = curConnection.paths.find(({ cells }) => cells[`${player.x},${player.y}`]);
-				if (path) {
-					prevConnection = curConnection;
-					curConnection = { rooms: [], paths: [path] };
-				} else {
-					collideWall();
-				}
-			}
+			curConnection = { rooms: [roomId], paths: [] };
 		} else {
-			// collision
-			if (curConnection.rooms.length === 1) {
-				const room = curConnection.rooms[0];
-				if (player.x < room.getLeft() || player.x > room.getRight() || player.y < room.getTop() || player.y > room.getBottom()) {
-					collideWall();
-				}
-			} else if (curConnection.paths.length === 1) {
-				const path = curConnection.paths[0];
-				if (!path.cells[`${player.x},${player.y}`]) {
-					collideWall();
-				}
+			const path = curConnection.paths.find(({ cells }) => cells[`${player.x},${player.y}`]);
+			if (path) {
+				prevConnection = curConnection;
+				curConnection = { rooms: [], paths: [path] };
+			} else {
+				collideWall();
 			}
+		}
+		return;
+	}
+
+	// collision
+	if (curConnection.rooms.length === 1) {
+		const room = curConnection.rooms[0];
+		if (player.x < room.getLeft() || player.x > room.getRight() || player.y < room.getTop() || player.y > room.getBottom()) {
+			collideWall();
+			return;
+		}
+	}
+	if (curConnection.paths.length === 1) {
+		const path = curConnection.paths[0];
+		if (!path.cells[`${player.x},${player.y}`]) {
+			collideWall();
+			return;
 		}
 	}
 
@@ -280,9 +275,7 @@ document.addEventListener("keydown", function move(e) {
 	} else {
 		scheduleText('');
 	}
-
-	draw();
-});
+}
 
 const paths = getPaths(map);
 const rooms = map.getRooms();
