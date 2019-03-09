@@ -220,7 +220,11 @@ document.addEventListener("keydown", function move(e) {
 	// collision
 	const door = doors[[player.x, player.y].join(',')];
 	if (door && !door.open) {
+		clearTimeout(door.closeTimeout);
 		door.open = true;
+		door.closeTimeout = setTimeout(() => {
+			door.open = false;
+		}, 1000);
 		collideWall();
 	} else {
 		const connection = connections[[player.x, player.y].join(',')];
