@@ -20,7 +20,7 @@ export function getPaths(map) {
 			bottom,
 		};
 	})
-	// merge colinear
+	// convert to cells
 	.reduce((result, {
 		left,
 		right,
@@ -57,7 +57,8 @@ export function getPaths(map) {
 		}
 		addCell(start);
 		paths.push({
-			cells: path
+			cells: path,
+			doors: [],
 		});
 	} while (Object.keys(cells).length);
 	return paths;

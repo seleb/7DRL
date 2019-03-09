@@ -86,7 +86,9 @@ function draw() {
 	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x - player.x) / width + 0.5, (player.y - camera.y) / height - 0.5);
 	display.clear();
 
+	drawCorridors();
 	drawRooms();
+	drawDoors();
 	display.draw(player.x, player.y, '☻', 'white', 'black');
 	// display.drawText(1, 1, "Hello world");
 
@@ -155,15 +157,6 @@ function drawCorridors() {
 }
 
 function drawRooms() {
-	drawCorridors();
-	// rooms.forEach(room => {
-	// 	drawRoom(display, room, 'grey', 'darkgrey');
-	// });
-	// rooms.forEach(room => {
-	// drawRoom(display, room, 'red', 'darkred');
-	// room.getDoors(drawDoor);
-	// });
-
 	prevConnection.rooms
 		.forEach(room => {
 			drawRoom(display, room, 'red', 'darkred');
@@ -172,7 +165,17 @@ function drawRooms() {
 	curConnection.rooms
 		.forEach(room => {
 			drawRoom(display, room, 'yellow', 'orange');
+		});
+}
+
+function drawDoors() {
+	curConnection.rooms
+		.forEach(room => {
 			room.getDoors(drawDoor);
+		});
+	curConnection.paths
+		.forEach(({ doors }) => {
+			doors.forEach(([x,y]) => drawDoor(x,y));
 		});
 }
 
@@ -301,6 +304,7 @@ doors.forEach(([x, y]) => {
 			cells[`${x},${y-1}`]
 		) {
 			connections[id].paths.push(path);
+			path.doors.push([x,y]);
 		}
 	});
 });
