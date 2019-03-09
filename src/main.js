@@ -5,7 +5,7 @@ import WebGLazy from 'webglazy';
 import shaderSrc from './shader.frag.glsl';
 import { drawRoom } from './room';
 import { getPaths } from './corridor';
-import { lerp } from './utils';
+import { lerp, strToPos } from './utils';
 
 
 const width = 24;
@@ -144,9 +144,9 @@ function drawDoor(x, y, color) {
 function drawPaths(p, colour) {
 	p.forEach(({ cells }) => {
 		Object.keys(cells)
-			.map(cell => cell.split(',').map(str => parseInt(str, 10)))
+			.map(strToPos)
 			.forEach(([x, y]) => {
-				display.draw(parseInt(x, 10), parseInt(y, 10), '※', colour);
+				display.draw(x, y, '※', colour);
 			});
 	});
 }
@@ -182,7 +182,7 @@ function drawDoors() {
 
 let curConnection;
 let prevConnection;
-document.addEventListener("keydown", function(e) {
+document.addEventListener("keydown", function move(e) {
 	var code = e.keyCode;
 
 	// var vk = "?"; /* find the corresponding constant */
@@ -300,7 +300,7 @@ rooms.forEach(room => room.getDoors((x, y) => {
 	};
 	connections[id].rooms.push(room);
 }));
-Object.keys(doors).map(d => d.split(',').map(num => parseInt(num, 10))).forEach(([x, y]) => {
+Object.keys(doors).map(strToPos).forEach(([x, y]) => {
 	const id = [x, y].join(',');
 	paths.forEach(path => {
 		const {

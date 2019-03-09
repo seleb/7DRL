@@ -1,3 +1,5 @@
+import { strToPos } from "./utils";
+
 export function getPaths(map) {
 	const cells = map.getCorridors()
 	// normalize
@@ -42,7 +44,7 @@ export function getPaths(map) {
 		function addCell(cell) {
 			delete cells[cell];
 			path[cell] = true;
-			const [x,y] = cell.split(',').map(str => parseInt(str, 10));
+			const [x,y] = strToPos(cell);
 			[
 				[1,0],
 				[-1,0],
