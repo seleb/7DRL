@@ -99,7 +99,16 @@ function draw() {
 				d(x, y, '', '', 'black');
 			}
 		}
-		display.drawText(1, height - 3, '%c{white}%b{black}' + text.replace(new RegExp(`(.{${textIdx}})(.*)`), (_, show, hide) => `${show}${hide.replace(/[^\s]/g, '\u00A0')}`), width - 2);
+		let t = text;
+		for(let i = 0; i < Math.random()*3; ++i) {
+			if (Math.random() < 0.9) {
+				continue;
+			}
+			t = t.replace(new RegExp(`(.{${Math.floor(Math.random()*t.length)}})(.)(.*)`), (_, a, replace, b) => (
+				`${a}${!replace.trim() ? replace : String.fromCodePoint(97+Math.floor(25*Math.random()))}${b}`
+			));
+		}
+		display.drawText(1, height - 3, '%c{white}%b{black}' + t.replace(new RegExp(`(.{${textIdx}})(.*)`), (_, show, hide) => `${show}${hide.replace(/[^\s]/g, '\u00A0')}`), width - 2);
 		camera.x = c.x;
 		camera.y = c.y;
 	}
