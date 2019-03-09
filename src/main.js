@@ -184,10 +184,10 @@ document.addEventListener("keydown", function(e) {
 		// left a connection point
 		const roomId = curConnection.rooms.find(id => {
 			const room = rooms[id];
-			const top = room.getTop() - 1;
-			const bottom = room.getBottom() + 1;
-			const left = room.getLeft() - 1;
-			const right = room.getRight() + 1;
+			const top = room.getTop();
+			const bottom = room.getBottom();
+			const left = room.getLeft();
+			const right = room.getRight();
 			return player.x >= left && player.x <= right && player.y >= top && player.y <= bottom;
 		});
 		if (roomId !== undefined) {
