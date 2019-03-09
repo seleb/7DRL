@@ -77,7 +77,7 @@
 		) * 2.5 + 0.2;
 		float chrAbbRotation=mod(t/10.0, PI2);
 		fg += chrAbb(uv, chrAbbSeparation, chrAbbRotation+PI2*(uv.x+uv.y)) * 0.2;
-		fg *= grille(uv, vec2(0.6,0.3));
+		fg *= grille(uv, vec2(0.9,0.3));
 		fg.r = clamp(0.0, fg.r, 1.0);
 		fg.g = clamp(0.0, fg.g, 1.0);
 		fg.b = clamp(0.0, fg.b, 1.0);
