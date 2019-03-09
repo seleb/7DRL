@@ -126,11 +126,10 @@ function draw() {
 }
 
 // RNG.setSeed(123);
-var map = new Map.Digger(width * 2, height * 2, {
+var map = new Map.Uniform(width * 2, height * 2, {
 	// roomWidth: [min, max],
 	// roomHeight: [min, max],
-	corridorLength: [3, 5],
-	dugPercentage: 0.8,
+	roomDugPercentage: 0.5,
 	timeLimit: 2000,
 });
 map.create();
