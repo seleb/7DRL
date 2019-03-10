@@ -81,7 +81,7 @@
 		fg.g = clamp(0.0, fg.g, 1.0);
 		fg.b = clamp(0.0, fg.b, 1.0);
 		float flicker = pow(vignette(puv + lightOffset,1.0),3.0);
-		float flickerMix = step(uv.y, 3.5/24.0 * text);
+		float flickerMix = step(uv.y, 4.5/24.0 * text);
 		fg.r *= mix(flicker-rand(vec2(puv.x,t))*0.1, 1.0, flickerMix);
 		fg.g *= mix(flicker-rand(vec2(puv.y,t))*0.1, 1.0, flickerMix);
 		fg.b *= mix(flicker-rand(vec2(puv.x+puv.y,t))*0.1, 1.0, flickerMix);

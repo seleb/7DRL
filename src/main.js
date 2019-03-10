@@ -9,6 +9,7 @@ import { lerp, strToPos, getRandomItem } from './utils';
 import characterSymbolsSrc from './characters.txt';
 const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
 
+let textCol = 'white';
 let text = '';
 let textTimeout;
 let textIdx;
@@ -75,8 +76,8 @@ function draw() {
 		const c = { ...camera };
 		camera.x = camera.y = 0;
 		for (let x = 0; x <= width; ++x) {
-			for (let y = height - 4; y <= height; ++y) {
-				d(x, y, '', '', 'black');
+			for (let y = height - 5; y <= height; ++y) {
+				display.draw(x, y, '', '', 'black');
 			}
 		}
 		let t = text;
@@ -88,7 +89,7 @@ function draw() {
 				`${a}${!replace.trim() ? replace : String.fromCodePoint(replace.codePointAt(0)+Math.floor(25*(Math.random()-0.5)))}${b}`
 			));
 		}
-		display.drawText(1, height - 3, '%c{white}%b{black}' + t.replace(new RegExp(`(.{${textIdx}})(.*)`), (_, show, hide) => `${show}${hide.replace(/[^\s]/g, '\u00A0')}`), width - 2);
+		display.drawText(1, height - 4, `%c{${textCol}}%b{black}${t.replace(new RegExp(`(.{${textIdx}})(.*)`), (_, show, hide) => `${show}${hide.replace(/[^\s]/g, '\u00A0')}`)}`, width - 2);
 		camera.x = c.x;
 		camera.y = c.y;
 	}
