@@ -43,19 +43,19 @@ function scheduleText(newText) {
 
 function draw() {
 	glazy.gl.uniform2f(glazy.glLocations.lightOffset, (camera.x - player.x) / width + 0.5, (player.y - camera.y) / height - 0.5);
-	drawPaths(prevConnection.paths, 'darkred');
+	drawPaths(prevConnection.paths, 'rgb(0,50,0)');
 	prevConnection.rooms.forEach(room => {
-		drawRoom(display, room, 'red', 'darkred');
+		drawRoom(display, room, 'rgb(30,70,0)', 'rgb(0,50,0)');
 	});
 	curConnection.rooms.forEach(room => {
-		drawRoom(display, room, 'yellow', 'orange');
+		drawRoom(display, room, 'rgb(94,179,0)', 'rgb(187,155,0)');
 	});
-	drawPaths(curConnection.paths, 'orange');
+	drawPaths(curConnection.paths, 'rgb(187,155,0)');
 	curConnection.paths.forEach(({ doors }) => {
-		doors.forEach(([x, y]) => drawDoor(x, y, 'red'));
+		doors.forEach(([x, y]) => drawDoor(x, y, 'rgb(30,70,0)'));
 	});
 	curConnection.rooms.forEach(room => {
-		room.getDoors((x, y) => drawDoor(x, y, 'yellow'));
+		room.getDoors((x, y) => drawDoor(x, y, 'rgb(94,179,0)'));
 	});
 	display.draw(player.x, player.y, playerChar, 'rgb(220,255,220)');
 
