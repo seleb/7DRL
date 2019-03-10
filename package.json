@@ -1,7 +1,7 @@
 {
 	"name": "7drl-2019",
 	"version": "0.0.1",
-	"description": "",
+	"description": "TINAR-L",
 	"main": "./src/index.js",
 	"author": "Sean S. LeBlanc",
 	"scripts": {
@@ -37,6 +37,7 @@
 	},
 	"dependencies": {
 		"rot-js": "^2.0.3",
+		"tracery-grammar": "^2.7.2",
 		"webglazy": "^3.0.0"
 	}
 }

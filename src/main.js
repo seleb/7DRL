@@ -1,13 +1,13 @@
 import './assets/reset.css';
 
-import { Display, KEYS, RNG, Map } from 'rot-js';
+import { Display, KEYS, RNG, Map, Color } from 'rot-js';
 import WebGLazy from 'webglazy';
 import shaderSrc from './shader.frag.glsl';
 import { drawRoom, getSpaces, getPointsOfInterest } from './room';
 import { getPaths } from './corridor';
 import { lerp, strToPos, getRandomItem } from './utils';
-import characterSymbolsSrc from './characters.txt';
-const characterSymbols = characterSymbolsSrc.split('\n').filter(s => s);
+import tracery from "tracery-grammar";
+import charactersSource from './characters';
 
 let textCol = 'white';
 let text = '';
@@ -213,9 +213,13 @@ function move(x,y) {
 	curConnection.rooms.forEach(({ characters }) => {
 		const character = characters.find(({ x, y }) => x === player.x && y === player.y);
 		if (character) {
+			if (!character.text) {
+				character.text = scriptText.shift() || 'Thanks for playing.';
+			}
 			if (text === character.text) {
 				finishText();
 			} else {
+				textCol = character.colour;
 				scheduleText(character.text);
 			}
 			collideWall();
@@ -277,6 +281,20 @@ let paths;
 let rooms;
 let doors;
 
+let scriptText = `
+This is not a rogue-like.
+It wanted to be one.
+It figured out a rough aesthetic - the look and feel.
+It's even built with a rogue-like toolkit.
+But it lacked direction. Didn't know how to be.
+It's a bit sad, to have such high hopes and achieve so few.
+So what's to be done? Is it to be abandoned? A forgotten failure?
+Maybe it deserves better.
+If it can't be what it wanted, it can be something else.
+Something lesser, but not necessarily worse.
+This is not a rogue-like. It just is what it is.
+`.trim().split('\n');
+
 setTimeout(() => {
 	map.create();
 	paths = getPaths(map);
@@ -321,22 +339,40 @@ setTimeout(() => {
 	// place characters
 	rooms.forEach(room => {
 		const spaces = getSpaces(room, getPointsOfInterest(room));
-		const [x,y] = getRandomItem(spaces);
+		let [x,y] = getRandomItem(spaces);
 		room.characters = [];
 		room.characters.push({
 			x,
 			y,
-			text: 'I am a person with a description.',
-			symbol: getRandomItem(characterSymbols),
-			colour: 'white',
+			symbol: '?',
+			colour: 'rgb(0,255,0)',
 		});
-	})
+		const spaces2 = getSpaces(room, getPointsOfInterest(room));
+		for(let i = 0; i < spaces2.length; ++i) {
+			if (Math.random() < 0.5) {
+				continue;
+			}
+			const c = getRandomItem(charactersSource);
+			const t = c.text.flatten('#main#');
+			[x,y] = spaces2[i];
+			room.characters.push({
+				x,
+				y,
+				symbol: getRandomItem(c.symbol),
+				text: t,
+				colour: Color.toRGB(Color.interpolate(...c.colour, Math.random())),
+			});
+		}
+	});
 	
 
 	// camera/player stuff
 	const [x, y] = rooms[0].getCenter();
 	player.x = x;
 	player.y = y;
+	rooms[0].characters.splice(1);
+	[rooms[0].characters[0].x, player.x] = [player.x, rooms[0].characters[0].x];
+	[rooms[0].characters[0].y, player.y] = [player.y, rooms[0].characters[0].y];
 	camera.x = player.x - width / 2;
 	camera.y = player.y - height / 2;
 	curConnection = { rooms: [rooms[0]], paths: [] };
