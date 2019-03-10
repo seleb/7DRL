@@ -211,7 +211,8 @@ function move(x,y) {
 
 
 	curConnection.rooms.forEach(({ characters }) => {
-		const character = characters.find(({ x, y }) => x === player.x && y === player.y);
+		const idx = characters.findIndex(({ x, y }) => x === player.x && y === player.y);
+		const character = characters[idx];
 		if (character) {
 			if (character.script) {
 				character.script = false;
@@ -223,7 +224,12 @@ function move(x,y) {
 				textCol = character.colour;
 				scheduleText(character.text);
 			}
-			collideWall();
+			if (character.solid) {
+				collideWall();
+			}
+			if (character.pickup) {
+				characters.splice(idx, 1);
+			}
 		} else {
 			scheduleText('');
 		}
@@ -348,6 +354,7 @@ setTimeout(() => {
 			symbol: '?',
 			colour: 'rgb(0,255,0)',
 			script: true,
+			solid: true,
 		});
 		const spaces2 = getSpaces(room, getPointsOfInterest(room));
 		for(let i = 0; i < spaces2.length; ++i) {
@@ -360,6 +367,8 @@ setTimeout(() => {
 			room.characters.push({
 				x,
 				y,
+				solid: c.solid,
+				pickup: c.pickup,
 				symbol: getRandomItem(c.symbol),
 				text: t,
 				colour: Color.toRGB(Color.interpolate(...c.colour, Math.random())),

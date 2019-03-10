@@ -1,6 +1,7 @@
 import tracery from "tracery-grammar";
 
 export default [{
+	solid: true,
 	symbol: ['T', 'Y', 't', 'P', '⸙'],
 	colour: [[0,50,0], [100,250,100]],
 	text: {
