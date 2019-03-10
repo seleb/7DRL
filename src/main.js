@@ -57,7 +57,6 @@ function draw() {
 	curConnection.rooms.forEach(room => {
 		room.getDoors((x, y) => drawDoor(x, y, 'rgb(94,179,0)'));
 	});
-	display.draw(player.x, player.y, playerChar, 'rgb(220,255,220)');
 
 	curConnection.rooms.forEach(({ characters }) => {
 		characters.forEach(({
@@ -69,6 +68,7 @@ function draw() {
 			display.draw(x, y, symbol, colour);
 		});
 	});
+	display.draw(player.x, player.y, playerChar, 'rgb(220,255,220)');
 	
 
 	glazy.gl.uniform1f(glazy.glLocations.text, text ? 1 : 0);
