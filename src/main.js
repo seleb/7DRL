@@ -262,7 +262,7 @@ display.drawText(1, height - 3, "Loading...");
 
 let curConnection;
 let prevConnection;
-// RNG.setSeed(123);
+RNG.setSeed(123);
 const map = new Map.Uniform(width * 4, height * 4, {
 	// roomWidth: [min, max],
 	// roomHeight: [min, max],
