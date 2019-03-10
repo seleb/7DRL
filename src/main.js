@@ -57,7 +57,7 @@ function draw() {
 	curConnection.rooms.forEach(room => {
 		room.getDoors((x, y) => drawDoor(x, y, 'yellow'));
 	});
-	display.draw(player.x, player.y, '☻', 'white', 'black');
+	display.draw(player.x, player.y, playerChar, 'rgb(220,255,220)');
 
 	curConnection.rooms.forEach(({ characters }) => {
 		characters.forEach(({
@@ -260,11 +260,6 @@ glazy.gl.uniform1f(glazy.glLocations.text, 1);
 
 display.drawText(1, height - 3, "Loading...");
 
-const d = display.draw.bind(display);
-display.draw = function(x, y, ...args) {
-	d(x - camera.x, y - camera.y, ...args);
-};
-
 let curConnection;
 let prevConnection;
 // RNG.setSeed(123);
@@ -276,6 +271,7 @@ const map = new Map.Uniform(width * 4, height * 4, {
 });
 const connections = {};
 const player = {};
+let playerChar = '';
 const camera = {};
 let paths;
 let rooms;
@@ -346,24 +342,42 @@ setTimeout(() => {
 	curConnection = { rooms: [rooms[0]], paths: [] };
 	prevConnection = curConnection;
 
-	// start
-	setInterval(() => {
-		camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.2) * width) / width;
-		camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.2) * height) / height;
-		glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x % 1, camera.y % 1);
-		draw();
-	}, 120);
-	
-	document.addEventListener("keydown", onKeyDown);
-	display.clear();
 
-	// debug
-	window.debug = {
-		display,
-		map,
-		rooms,
-		doors,
-		paths,
-		connections,
-	};
+	new Promise(resolve => {
+		display.clear();
+		display.drawText(1, height - 3, "Who are you?");
+		function pickChar(event) {
+			playerChar = event.key.trim();
+			if (playerChar.length === 1) {
+				document.removeEventListener("keydown", pickChar);
+				resolve();
+			}
+		}
+		document.addEventListener("keydown", pickChar);
+	}).then(() => {
+		// start
+		const d = display.draw.bind(display);
+		display.draw = function(x, y, ...args) {
+			d(x - camera.x, y - camera.y, ...args);
+		};
+		setInterval(() => {
+			camera.x = Math.floor(lerp(camera.x, player.x - width / 2, 0.2) * width) / width;
+			camera.y = Math.floor(lerp(camera.y, player.y - height / 2, 0.2) * height) / height;
+			glazy.gl.uniform2f(glazy.glLocations.gridOffset, -camera.x % 1, camera.y % 1);
+			draw();
+		}, 120);
+		
+		document.addEventListener("keydown", onKeyDown);
+		display.clear();
+
+		// debug
+		window.debug = {
+			display,
+			map,
+			rooms,
+			doors,
+			paths,
+			connections,
+		};
+	});
 }, 100);
