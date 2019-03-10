@@ -138,6 +138,11 @@ function onKeyDown(e) {
 }
 
 function move(x,y) {
+	if (textIdx < text.length) {
+		finishText();
+		return;
+	}
+
 	const {
 		x: prevX,
 		y: prevY,
@@ -218,9 +223,7 @@ function move(x,y) {
 				character.script = false;
 				character.text = scriptText.shift() || 'Thanks for playing.';
 			}
-			if (text === character.text) {
-				finishText();
-			} else {
+			if (text !== character.text) {
 				textCol = character.colour;
 				scheduleText(character.text);
 			}
