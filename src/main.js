@@ -6,7 +6,6 @@ import shaderSrc from './shader.frag.glsl';
 import { drawRoom, getSpaces, getPointsOfInterest } from './room';
 import { getPaths } from './corridor';
 import { lerp, strToPos, getRandomItem } from './utils';
-import tracery from "tracery-grammar";
 import charactersSource from './characters';
 
 let textCol = 'white';
@@ -296,7 +295,7 @@ This is not a rogue-like.
 It wanted to be one.
 It figured out a rough aesthetic - the look and feel.
 It's even built with a rogue-like toolkit.
-But it lacked direction. Didn't know how to be.
+But it lacked direction. Didn't know what to be.
 It's a bit sad, to have such high hopes and achieve so few.
 So what's to be done? Is it to be abandoned? A forgotten failure?
 Maybe it deserves better.
@@ -354,7 +353,7 @@ setTimeout(() => {
 		room.characters.push({
 			x,
 			y,
-			symbol: '?',
+			symbol: 'ℹ',
 			colour: 'rgb(0,255,0)',
 			script: true,
 			solid: true,
