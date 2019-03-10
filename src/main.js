@@ -213,7 +213,8 @@ function move(x,y) {
 	curConnection.rooms.forEach(({ characters }) => {
 		const character = characters.find(({ x, y }) => x === player.x && y === player.y);
 		if (character) {
-			if (!character.text) {
+			if (character.script) {
+				character.script = false;
 				character.text = scriptText.shift() || 'Thanks for playing.';
 			}
 			if (text === character.text) {
@@ -346,6 +347,7 @@ setTimeout(() => {
 			y,
 			symbol: '?',
 			colour: 'rgb(0,255,0)',
+			script: true,
 		});
 		const spaces2 = getSpaces(room, getPointsOfInterest(room));
 		for(let i = 0; i < spaces2.length; ++i) {
